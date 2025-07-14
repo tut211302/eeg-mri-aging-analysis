@@ -1,4 +1,6 @@
 data
+mrtrix3
+output*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
