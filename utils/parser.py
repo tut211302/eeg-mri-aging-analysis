@@ -33,6 +33,8 @@ def get_parser():
                         help='Path to save PSD results')
     parser.add_argument('--tfr_path', type=str, default = 'D:\\FY2025\\Fukuyama\\work place\\eeg-mri-aging-analysis\\data\\results\\tfr\\', 
                         help='Path to save TFR results')
+    parser.add_argument('--psi_path', type=str, default = 'D:\\FY2025\\Fukuyama\\work place\\eeg-mri-aging-analysis\\data\\results\\psi\\', 
+                        help='Path to save PSI results')
     parser.add_argument('--connectivity_path', type=str, default = 'D:\\FY2025\\Fukuyama\\work place\\eeg-mri-aging-analysis\\data\\results\\connectivity\\', 
                         help='Path to save connectivity results')
 
@@ -49,6 +51,9 @@ def get_parser():
     #                    help='Resample the data to given sampling rate (Hz)')
     #parser.add_argument('--set_eog', action='store_true',
     #                    help='Use default EOG channel labeling (e.g. VEOG)')
+
+    parser.add_argument('--epoch_duration', type=float, default=2.0,
+                        help='Duration of epochs in seconds (default: 2.0)')
 
     # ICA options
     parser.add_argument('--ica', action='store_true',

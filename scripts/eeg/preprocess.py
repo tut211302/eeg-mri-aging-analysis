@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 
 import mne
 
+from tqdm import tqdm
+
+mne.set_log_level('WARNING')
+
 def load_data(args, id):
     """
     Load EEG data from a specified directory.
@@ -20,8 +24,6 @@ def load_data(args, id):
     raw = mne.io.read_raw_brainvision(vhdr_file, misc='auto')     # Returns a Raw object containing BrainVision data
     raw.load_data()  # Load the data into memory
     return raw
-
-
 
 def set_montage(args, raw):
     """ Set the standard montage for EEG channels in the raw data.
@@ -71,7 +73,7 @@ def divide_conditions(raw):
     eo_code = event_id.get('Stimulus/S200', -1)  # Eyes Open
     ec_code = event_id.get('Stimulus/S210', -1)  # Eyes Closed
 
-    for i, event in enumerate(events[:-1]):  # skip last (no next)
+    for i, event in tqdm(enumerate(events[:-1]), total=len(events) - 1, desc="Splitting Conditions"):
         this_sample = event[0]
         this_code = event[2]
         
