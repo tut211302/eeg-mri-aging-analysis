@@ -5,6 +5,8 @@ from scripts.eeg import preprocess
 
 from tqdm import tqdm
 
+import mne
+mne.set_log_level('WARNING')
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ def process_subject(args, subject_id):
         logger.info(f'--- Processing subject: {subject_id} ---')
 
         # Load raw EEG data
-        raw = preprocess.load_data(args, subject_id)
+        raw = preprocess.load_rawdata(args, subject_id)
 
         # Set the VEOG channel type
         raw.set_channel_types({'VEOG': 'eog'})
@@ -53,10 +55,10 @@ def process_subject(args, subject_id):
         raw_ec = preprocess.filter_data(args, raw_ec)
 
         # Apply ICA if specified
-        if args.ica:
-            logger.info(f'Applying ICA for subject {subject_id}')
-            raw_eo = preprocess.apply_ica(raw_eo, args, subject_id, condition='EO')
-            raw_ec = preprocess.apply_ica(raw_ec, args, subject_id, condition='EC')
+        #if args.ica:
+        #    logger.info(f'Applying ICA for subject {subject_id}')
+        #    raw_eo = preprocess.apply_ica(raw_eo, args, subject_id, condition='EO')
+        #    raw_ec = preprocess.apply_ica(raw_ec, args, subject_id, condition='EC')
 
         # Save preprocessed data
         preprocess.save_raw(raw_eo, args.preprocess_path, subject_id, condition='EO')
@@ -69,8 +71,11 @@ def process_subject(args, subject_id):
 
     finally:
         # Free memory
-        del raw, raw_eo, raw_ec
-        gc.collect()
+        #del raw, raw_eo, raw_ec
+        #gc.collect()
+        for var_name in ['raw', 'raw_eo', 'raw_ec']:
+            if var_name in locals():
+                del locals()[var_name]
 
 def preprocess_all_subjects(args):
     """ 
@@ -82,7 +87,7 @@ def preprocess_all_subjects(args):
     subject_ids = get_subject_ids(args.raw_path)    
 
     for subject_id in tqdm(subject_ids, desc="Preprocessing Subjects"):
-        #process_subject(args, subject_id)
-        print(subject_id)
+        process_subject(args, subject_id)
+        #print(subject_id)
 
     logger.info('All subjects processed successfully.')

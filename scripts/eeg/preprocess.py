@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 mne.set_log_level('WARNING')
 
-def load_data(args, id):
+def load_rawdata(args, id):
     """
     Load EEG data from a specified directory.
     
@@ -17,13 +17,25 @@ def load_data(args, id):
         id (str): Identifier for the subject, used to construct the file path.
     Returns:
         raw (mne.io.Raw): The loaded EEG data as a Raw object.
+    Raises:
+        FileNotFoundError: If the specified EEG file does not exist.
+        Exception: If there is an error loading the EEG data.
     """
-    raw_dir = args.raw_path + id + '\\RSEEG\\'      # Path to the raw EEG Data folder
+    raw_dir = args.raw_path + id + '\\RSEEG\\'  # Path to the raw EEG Data folder
+    vhdr_file = op.join(raw_dir, id + '.vhdr')  # Path to the raw EEG header file
 
-    vhdr_file = op.join(raw_dir, id + '.vhdr')                # Path to the raw EEG header file
-    raw = mne.io.read_raw_brainvision(vhdr_file, misc='auto')     # Returns a Raw object containing BrainVision data
-    raw.load_data()  # Load the data into memory
-    return raw
+    # File existence check
+    if not op.exists(vhdr_file):
+        print(f"File not found: {vhdr_file}. Skipping subject {id}.")
+        return None
+
+    try:
+        raw = mne.io.read_raw_brainvision(vhdr_file, misc='auto')  # Load BrainVision data
+        raw.load_data()  # Load the data into memory
+        return raw
+    except Exception as e:
+        print(f"Error loading {vhdr_file}: {e}. Skipping subject {id}.")
+        return None
 
 def set_montage(args, raw):
     """ Set the standard montage for EEG channels in the raw data.
@@ -62,7 +74,11 @@ def divide_conditions(raw):
     """
 
     # Extract events and event_id dictionary from annotations in the raw data
-    events, event_id = mne.events_from_annotations(raw)
+    try:
+        events, event_id = mne.events_from_annotations(raw)
+    except Exception as e:
+        print(f"Could not extract events: {e}")
+        return None, None
 
     fs = int(raw.info['sfreq'])
 
@@ -181,10 +197,11 @@ def save_raw(raw, output_path, id, condition):
     subject_dir = os.path.join(output_path, id)
 
     # Ensure the output directory exists
-    os.makedirs(os.path.dirname(subject_dir), exist_ok=True)
+    #os.makedirs(os.path.dirname(subject_dir), exist_ok=True)
+    os.makedirs(subject_dir, exist_ok=True)
 
     # Construct the full path for saving the raw data
-    path = os.path.join(subject_dir, f"{id}_{condition}.fif")
+    path = os.path.join(subject_dir, f"{id}_{condition}_eeg.fif")
 
     # Save the raw data in FIF format
     raw.save(path, overwrite=True)
